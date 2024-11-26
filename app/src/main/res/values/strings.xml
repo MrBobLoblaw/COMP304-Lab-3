@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">dylanmeszaros_COMP304Lab3_Exercise1</string>
+    <string name="image">Image</string>
+    <string name="get_weather">Get Weather</string>
+    <string name="google_map_api_key">AIzaSyCPxQOpxqy1YHwaT6QVMypf0AG8rKiJfIk</string>
+    <string name="weather_api_key">b0b17820e92a987260edad235a8b01f1</string>
 </resources>

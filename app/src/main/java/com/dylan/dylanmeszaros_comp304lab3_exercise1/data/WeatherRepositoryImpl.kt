@@ -34,6 +34,11 @@ class WeatherRepositoryImpl: WeatherRepository {
     override fun getAllWeather(): List<Weather>{
         return allWeatherLocations;
     }
+
+    override fun findRecentWeatherById(id: Int): Weather {
+        return allWeatherLocations.find { it.id == id }
+            ?: throw NoSuchElementException("Weather not found: " + id)
+    }
     override fun getWeatherAPI(): String {
         return "@string/weather_api_key"; // API Key
     }

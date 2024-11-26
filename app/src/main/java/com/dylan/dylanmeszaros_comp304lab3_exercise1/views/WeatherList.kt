@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -37,7 +39,7 @@ import org.json.JSONObject
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun WeatherList(modifier: Modifier, context: Context) {
+fun WeatherList(modifier: Modifier, context: Context, onExplore: (Weather) -> Unit) {
     var weatherViewModel: WeatherViewModel = koinViewModel()
     LazyColumn(
         modifier = modifier
@@ -49,73 +51,90 @@ fun WeatherList(modifier: Modifier, context: Context) {
                     .padding(10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                //Text(text = "Name: ${task.name}")
-                //Text(text = "Species: ${task.status}")
-                Display_WeatherCard(weather, context);
+                Display_WeatherCard(weather, context, onExplore = { onExplore(weather) });
             }
         }
     }
 }
 
 @Composable
-fun Display_WeatherCard(weather: Weather, context: Context) {
+fun Display_WeatherCard(weather: Weather, context: Context, onExplore: () -> Unit) {
+    var weatherViewModel: WeatherViewModel = koinViewModel()
+    var newWeather by remember { mutableStateOf(weather) };
+    var isLoading by remember { mutableStateOf(true) };
 
-    var newWeather by remember { mutableStateOf(weather) }
-    var isLoading by remember { mutableStateOf(true) }
+    // Fetch weather data and wait till done loading
+    if (isLoading) {
+        getWeatherData(weather, context) { fetchedWeather ->
+            newWeather = fetchedWeather;
+            isLoading = false;
+        }
+    }
 
-    newWeather = getWeatherData(weather, context)
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = newWeather.placeName, style = MaterialTheme.typography.headlineLarge);
+            if (isLoading) {
+                Text(
+                    text = "Loading...",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = newWeather.placeName, style = MaterialTheme.typography.headlineLarge);
+                    IconButton(onClick = onExplore) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Explore"
+                        );
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp));
+                Text(text = newWeather.description.take(50) + "...", style = MaterialTheme.typography.bodyMedium);
+                Spacer(modifier = Modifier.height(4.dp));
+                Text(text = newWeather.temperature + " C", style = MaterialTheme.typography.bodyMedium);
             }
-            Spacer(modifier = Modifier.height(4.dp));
-            Text(text = newWeather.description.take(50) + "...", style = MaterialTheme.typography.bodyMedium); // Truncate content
-            Spacer(modifier = Modifier.height(4.dp));
-            Text(text = newWeather.temperature + " C", style = MaterialTheme.typography.bodyMedium); // Truncate content
         }
     }
 }
 
-private fun getWeatherData(weather: Weather, context: Context): Weather {
-    // Instantiate the RequestQueue.
-    val queue = Volley.newRequestQueue(context)
-    val url: String = "https://api.openweathermap.org/data/2.5/weather?lat=${weather.latLng.latitude}&lon=${weather.latLng.longitude}&units=metric&appid=b0b17820e92a987260edad235a8b01f1"
+fun getWeatherData(weather: Weather, context: Context, onResult: (Weather) -> Unit) {
+    val queue = Volley.newRequestQueue(context);
+    val url = "https://api.openweathermap.org/data/2.5/weather?lat=${weather.latLng.latitude}&lon=${weather.latLng.longitude}&units=metric&appid=b0b17820e92a987260edad235a8b01f1";
 
-    var newWeather = weather;
-
-    // Request a string response
-    // from the provided URL.
     val stringReq = StringRequest(
         Request.Method.GET, url, { response ->
-        // get the JSON object
-        val obj = JSONObject(response)
+            val obj = JSONObject(response);
 
-        // Getting the temperature readings from response
-        val main: JSONObject = obj.getJSONObject("main")
-        val temperature = main.getString("temp")
-            newWeather.temperature = temperature
-        println(temperature)
+            // Extract main object
+            val main = obj.getJSONObject("main");
+            val temperature = main.getString("temp");
 
-        // Getting the city name
-        val city = obj.getString("name")
-        println(city)
+            // Extract name object
+            val city = obj.getString("name");
 
-        // set the temperature and the city
-        // name using getString() function
-        //textView.text = "${temperature} deg Celcius in ${city}"
-    },
-        // In case of any error
-        { Log.e(TAG, "Place:") }
+            // Extract weather object
+            val weatherNode = obj.getJSONArray("weather").getJSONObject(0);
+            val description = weatherNode.getString("description");
+
+            // Return the updated weather object
+            val newWeather = weather.copy(
+                placeName = city,
+                temperature = temperature,
+                description = description
+            );
+            onResult(newWeather);
+        },
+        { error ->
+            Log.e("getWeatherData", "Error: ${error.message}");
+            onResult(weather);
+        }
     )
-    queue.add(stringReq)
-
-    return newWeather;
+    queue.add(stringReq);
 }

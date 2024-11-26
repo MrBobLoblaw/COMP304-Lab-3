@@ -8,8 +8,9 @@ class WeatherViewModel(
     private var weatherRepository: WeatherRepository
 ): ViewModel() {
 
-    fun getRecentWeather() = weatherRepository.getRecentWeather()
-    fun getAllWeather() = weatherRepository.getAllWeather()
-    fun addWeather(newWeather: Weather) = weatherRepository.addWeather(newWeather)
-    fun getWeatherAPI() = weatherRepository.getWeatherAPI()
+    fun getRecentWeather() = weatherRepository.getRecentWeather();
+    fun getAllWeather() = weatherRepository.getAllWeather();
+    fun addWeather(newWeather: Weather) = weatherRepository.addWeather(newWeather);
+    fun findRecentWeatherById(id: Int) = weatherRepository.findRecentWeatherById(id)
+    fun getWeatherAPI() = weatherRepository.getWeatherAPI();
 }

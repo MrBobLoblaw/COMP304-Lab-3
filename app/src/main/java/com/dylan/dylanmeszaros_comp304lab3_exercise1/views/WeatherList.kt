@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,40 +34,48 @@ import com.android.volley.VolleyLog.TAG
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.dylan.dylanmeszaros_comp304lab3_exercise1.data.Weather
+import com.dylan.dylanmeszaros_comp304lab3_exercise1.data.WeatherObject
 import com.dylan.dylanmeszaros_comp304lab3_exercise1.userLocationState
 import com.dylan.dylanmeszaros_comp304lab3_exercise1.viewmodel.WeatherViewModel
+import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun WeatherList(modifier: Modifier, context: Context, onExplore: (Weather) -> Unit) {
+fun WeatherList(modifier: Modifier, context: Context, onExplore: (WeatherObject) -> Unit) {
     var weatherViewModel: WeatherViewModel = koinViewModel()
     LazyColumn(
         modifier = modifier
     ) {
-        items(weatherViewModel.getRecentWeather()) { weather ->
+        items(weatherViewModel.getFavoriteWeatherObjects()) { weatherObject ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Display_WeatherCard(weather, context, onExplore = { onExplore(weather) });
+                Display_WeatherCard(weatherObject, context, onExplore = { onExplore(weatherObject) });
             }
         }
     }
 }
 
 @Composable
-fun Display_WeatherCard(weather: Weather, context: Context, onExplore: () -> Unit) {
+fun Display_WeatherCard(weatherObject: WeatherObject, context: Context, onExplore: () -> Unit) {
     var weatherViewModel: WeatherViewModel = koinViewModel()
-    var newWeather by remember { mutableStateOf(weather) };
+    //var newWeather by remember { mutableStateOf(weather) };
     var isLoading by remember { mutableStateOf(true) };
+    val uptodateWeatherObject = runBlocking {
+        weatherViewModel.getWeatherFromAPI(LatLng(weatherObject.coord.latitude, weatherObject.coord.longitude));
+    }
+    //weatherObject = updatedWeatherObject;
+
+    //weatherObject.id = uptodateWeatherObject.id;
 
     // Fetch weather data and wait till done loading
     if (isLoading) {
-        getWeatherData(weather, context) { fetchedWeather ->
-            newWeather = fetchedWeather;
+        if (weatherObject != null){
             isLoading = false;
         }
     }
@@ -87,7 +96,7 @@ fun Display_WeatherCard(weather: Weather, context: Context, onExplore: () -> Uni
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = newWeather.placeName, style = MaterialTheme.typography.headlineLarge);
+                    Text(text = weatherObject.name, style = MaterialTheme.typography.headlineLarge);
                     IconButton(onClick = onExplore) {
                         Icon(
                             imageVector = Icons.Default.Info,
@@ -96,15 +105,15 @@ fun Display_WeatherCard(weather: Weather, context: Context, onExplore: () -> Uni
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp));
-                Text(text = newWeather.description.take(50) + "...", style = MaterialTheme.typography.bodyMedium);
+                Text(text = weatherObject.weather[0].description.take(50) + "...", style = MaterialTheme.typography.bodyMedium);
                 Spacer(modifier = Modifier.height(4.dp));
-                Text(text = newWeather.temperature + " C", style = MaterialTheme.typography.bodyMedium);
+                Text(text = weatherObject.main.temp.toString() + " C", style = MaterialTheme.typography.bodyMedium);
             }
         }
     }
 }
 
-fun getWeatherData(weather: Weather, context: Context, onResult: (Weather) -> Unit) {
+/*fun getWeatherData(weather: Weather, context: Context, onResult: (Weather) -> Unit) {
     val queue = Volley.newRequestQueue(context);
     val url = "https://api.openweathermap.org/data/2.5/weather?lat=${weather.latLng.latitude}&lon=${weather.latLng.longitude}&units=metric&appid=b0b17820e92a987260edad235a8b01f1";
 
@@ -137,4 +146,8 @@ fun getWeatherData(weather: Weather, context: Context, onResult: (Weather) -> Un
         }
     )
     queue.add(stringReq);
+}*/
+
+public fun updateWeatherObject(current: WeatherObject, updated: WeatherObject){
+
 }

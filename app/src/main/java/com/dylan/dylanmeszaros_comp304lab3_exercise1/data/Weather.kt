@@ -1,6 +1,7 @@
 package com.dylan.dylanmeszaros_comp304lab3_exercise1.data
 
 import com.google.android.gms.maps.model.LatLng
+import com.squareup.moshi.Json
 
 data class Weather (
     var id: Int,

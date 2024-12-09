@@ -1,5 +1,6 @@
 package com.dylan.dylanmeszaros_comp304lab3_exercise1.data
 
+import androidx.compose.foundation.lazy.items
 import com.google.android.gms.maps.model.LatLng
 
 var allWeatherLocations = mutableListOf(
@@ -18,11 +19,36 @@ var allWeatherLocations = mutableListOf(
 
 )
 
+var favoriteWeatherObjects: MutableList<WeatherObject> = mutableListOf();
+
 var recentWeatherLocations = mutableListOf(
     allWeatherLocations[0], allWeatherLocations[1]
 )
 
 class WeatherRepositoryImpl: WeatherRepository {
+    /*override suspend fun getWeather(lat: Double, lng: Double, units: String, id: String): Weather {
+        return allWeatherLocations[1];
+    }*/
+
+    override fun addWeatherObject(weatherObject: WeatherObject): WeatherObject {
+        favoriteWeatherObjects.add(0, weatherObject);
+        cleanDuplicatePlaces();
+        return weatherObject;
+    }
+    override fun getFavoriteWeatherObjects(): List<WeatherObject> {
+        return favoriteWeatherObjects
+    }
+
+    override fun getFavoriteIndex(weatherObject: WeatherObject): Int? {
+        for (i in 0..favoriteWeatherObjects.count()){
+            if (favoriteWeatherObjects[i].id == weatherObject.id){
+                return i;
+            }
+        }
+        return null;
+    }
+
+
     override fun addWeather(newWeatherNode: Weather): Weather {
         recentWeatherLocations.add(0, newWeatherNode);
         cleanDuplicates();
@@ -48,6 +74,14 @@ fun cleanDuplicates() {
     val seenIds = mutableSetOf<Int>();
     recentWeatherLocations = recentWeatherLocations.filter { weather ->
         val isNew = seenIds.add(weather.id);
+        isNew;
+    }.toMutableList();
+}
+
+fun cleanDuplicatePlaces() {
+    val seenIds = mutableSetOf<Int>();
+    favoriteWeatherObjects = favoriteWeatherObjects.filter { weatherObject ->
+        val isNew = seenIds.add(weatherObject.id);
         isNew;
     }.toMutableList();
 }

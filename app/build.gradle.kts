@@ -64,11 +64,28 @@ dependencies {
     implementation(libs.play.services.maps) // Google Maps SDK
     implementation(libs.maps.compose) // Jetpack Compose Maps library
 
+    // Compose Viewmodel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+
+    // Compose LiveData
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
+
+    // Retrofit
     implementation(libs.retrofit.core)
+
+    // Moshi
+    implementation("com.squareup.moshi:moshi:1.14.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
     implementation(libs.retrofit.converter)
+
+    // OkHttp Interceptor
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
     implementation(libs.koin.android)
     implementation (libs.koin.androidx.compose)
-    implementation(libs.places)
+    implementation(libs.volley)
+    implementation(libs.maps.places)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
